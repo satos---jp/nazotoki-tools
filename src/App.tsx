@@ -23,7 +23,7 @@ import type {
 
 function App() {
   useEffect(() => {
-    const _ = require('./coi-serviceworker.js');
+    // const _ = require('./coi-serviceworker.js');
     const __ = require('./z3_wrapper.ts');
     // (async() => {
     //   // let { init } = require('z3-solver/build/wrapper.js');

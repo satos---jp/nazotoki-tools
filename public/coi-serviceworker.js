@@ -26,6 +26,7 @@
   if (n.serviceWorker) {
       n.serviceWorker.register('/nazotoki-tools/worker.js').then(
           (registration) => {
+              console.log(registration);
               !coi.quiet && console.log("COOP/COEP Service Worker registered", registration.scope);
 
               registration.addEventListener("updatefound", () => {
@@ -45,5 +46,3 @@
       );
   }
 })();
-
-export {}
