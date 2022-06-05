@@ -21,6 +21,8 @@ import type {
   Z3_func_entry,
 } from 'z3-solver';
 
+import wasm from './z3-built.wasm';
+
 function App() {
   useEffect(() => {
     // const _ = require('./coi-serviceworker.js');

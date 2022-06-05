@@ -338,9 +338,19 @@ module.exports = function (webpackEnv) {
       fallback: {
         fs: false,
         perf_hooks: false,
+        worker_threads: false,
+        crypto: require.resolve("crypto-browserify"),
+        buffer: require.resolve("buffer/"),
+        stream: require.resolve("stream-browserify"),
         path: require.resolve("path-browserify"),
       }
     },
+    loader: [
+      {
+        test: /\.wasm$/,
+        loaders: ['wasm-loader']
+      }
+    ],
     module: {
       strictExportPresence: true,
       rules: [
