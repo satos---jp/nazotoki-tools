@@ -1,0 +1,14 @@
+opam-version: "2.0"
+authors: "satos"
+maintainer: "satos"
+synopsis: "Jsoo wrapper for alt-ergo"
+homepage: "https://github.com/satos---jp/nazotoki-tools/"
+bug-reports: "https://github.com/satos---jp/nazotoki-tools/issues"
+build: [
+  ["dune" "build" "-p" name "-j" jobs]
+]
+depends: [
+	"js_of_ocaml"
+	"js_of_ocaml-lwt"
+	"js_of_ocaml-ppx"
+]
