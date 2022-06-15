@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/nazotoki-tools/static/css/main.073c9b0a.css",
-    "main.js": "/nazotoki-tools/static/js/main.5c25113f.js",
+    "main.js": "/nazotoki-tools/static/js/main.caaa01b7.js",
     "static/js/787.fe75ee37.chunk.js": "/nazotoki-tools/static/js/787.fe75ee37.chunk.js",
     "index.html": "/nazotoki-tools/index.html",
     "main.073c9b0a.css.map": "/nazotoki-tools/static/css/main.073c9b0a.css.map",
-    "main.5c25113f.js.map": "/nazotoki-tools/static/js/main.5c25113f.js.map",
+    "main.caaa01b7.js.map": "/nazotoki-tools/static/js/main.caaa01b7.js.map",
     "787.fe75ee37.chunk.js.map": "/nazotoki-tools/static/js/787.fe75ee37.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.073c9b0a.css",
-    "static/js/main.5c25113f.js"
+    "static/js/main.caaa01b7.js"
   ]
 }
