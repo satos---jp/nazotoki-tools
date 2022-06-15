@@ -1,14 +1,19 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import logo from './logo.svg';
 import './App.css';
 
 import {jsooTest} from './jsoo_wrapper';
 
 function App() {
+  const [s,setS] = useState("");
+  useEffect(() => {
+    jsooTest(setS);
+  },[]);
+
   return (
     <div>
       <div > hoge </div>
-      <div> {jsooTest()} </div>
+      <div> {s} </div>
     </div>
     // <div className="App">
     //   <header className="App-header">
