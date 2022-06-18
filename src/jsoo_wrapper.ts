@@ -1,4 +1,4 @@
-const w = new Worker('./alt-ergo/alt-ergo-worker.js');
+const worker = new Worker('./alt-ergo/alt-ergo-worker.js');
 
 const opts = '{ \"debug\": false, \"debug_ac\": false, \"debug_adt\": false \
 \"debug_arith\": false, \"debug_arrays\": false, \"debug_bitv\": false \
@@ -33,26 +33,28 @@ const input = [
 ];
 
 export function jsooTest(stateSet : (s:string) => void){
-  w.onmessage = function(e){
+  worker.onmessage = function(e){
     const s : {model: string[]}= JSON.parse(e.data);
     console.log('received worker results',s);
     stateSet(s.model.join(''));
   }
 
-  w.postMessage([0,
+  worker.postMessage([0,
     // JSON.stringify({content: [ "goal g : false" ] }),
     JSON.stringify({content: input }),
     // opts]);
     JSON.stringify({
-      debug: true,
+      // debug: true,
       file: "try-alt-ergo-file.ae",
       sat_solver: "Tableaux",
       input_format: "Native",
-      verbose: true,
+      // verbose: true,
       model: "all",
     })]);
   return `jsooTest:`;
 }
+
+export { worker };
 
 /*
 Do I better to write OCaml...?
