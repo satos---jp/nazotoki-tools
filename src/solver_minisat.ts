@@ -7,7 +7,9 @@ function assert(b:boolean){
   }
 }
 
-function convert_to_query(query: string[])
+type logty = (..._:any[]) => void
+
+function convert_to_query(query: string[], log:logty)
   : {cnf:string, relation:Map<number,string>} {
   // const cs = Array.from({length: hiragana.length}, (_,i) => `c${i}`);
   let max_q = 0;
@@ -64,7 +66,7 @@ function convert_to_query(query: string[])
     })();
 
     const res : string[][] = [];
-    console.log('start ForEach in query');
+    log('start ForEach in query');
     data.forEach((s) => {
       const tm = match(s);
       if(tm === undefined)return;
@@ -72,15 +74,15 @@ function convert_to_query(query: string[])
       // res = tm.concat(res);
       tm.forEach(v => res.push(v));
     });
-    console.log('finish ForEach query');
+    log('finish ForEach query');
 
     // 1つ以上の単語を選ぶ
     res.push(Array.from({length:match_idx}, (_,i) => `s_${qidx}_${i}`));
     return res;
   });
-  console.log('finish converting query according to words');
+  log('finish converting query according to words');
   const queries = queries_.flat();
-  console.log('finish flatten');
+  log('finish flatten');
 
   // 各文字に対応するひらがなは1つ
   const char_is_unique : string[][] = Array.from(vars).map((v) => {
@@ -107,7 +109,7 @@ function convert_to_query(query: string[])
     return res;
   })();
 
-  console.log('finish pushing res');
+  log('finish pushing res');
 
   let res = "";
   let varidx = 1;
@@ -135,10 +137,10 @@ function convert_to_query(query: string[])
   return {cnf: res,relation};
 }
 
-function recover(result:string,relation:Map<number,string>){
+function recover(result:string,relation:Map<number,string>, log:logty){
   const s = (()=>{
     const s = result.split(' ');
-    console.log(s);
+    log(s);
     if(s[0] === "UNSAT")return undefined;
     assert(s[0] === "SAT");
     s.shift();
@@ -148,7 +150,7 @@ function recover(result:string,relation:Map<number,string>){
     return "UNSAT";
   }
   const res : [string,string][]= [];
-  console.log(s);
+  log(s);
   relation.forEach((v,k) => {
     //console.log(k,v);
     if(s.has(k)){
@@ -163,12 +165,13 @@ function recover(result:string,relation:Map<number,string>){
 
 export function solverMinisat(
   query: string[],
-  callback : (s:string) => void){
+  callback : (s:string) => void,
+  log:logty){
   const n = Date.now();
-  console.log("start conversion");
-  const input = convert_to_query(query);
-  console.log(`end conversion. Took ${(Date.now() - n) / 1000}[s]`);
-  console.log("start solving");
+  log("start conversion");
+  const input = convert_to_query(query,log);
+  log(`end conversion. Took ${(Date.now() - n) / 1000}[s]`);
+  log("start solving");
 
   // const input = 'p cnf 3 2\n1 -3 0\n2 3 -1 0';
   let stt = 0;
@@ -179,7 +182,7 @@ export function solverMinisat(
 
   let cnt = 0;
   worker.onmessage = function(e){
-    console.log('recieve',e);
+    log('recieve',e);
     const s : {status: string, result: string | undefined} = e.data;
     cnt += 1;
     if(cnt>5)return;
@@ -192,23 +195,23 @@ export function solverMinisat(
       })();
       return;
     }
-    console.log('received worker results',s.result?.length,s.result?.substr(0,100));
-    console.log(`end solving. Took ${(Date.now() - stt) / 1000}[s]`);
+    log('received worker results',s.result?.length,s.result?.substr(0,100));
+    log(`end solving. Took ${(Date.now() - stt) / 1000}[s]`);
 
     if(s.result){
-      const ts = recover(s.result,input.relation);
+      const ts = recover(s.result,input.relation,log);
       callback(String(ts));
     }else{
       console.error("result not found.");
     }
   }
 
-  console.log("posting Msg");
+  log("posting Msg");
   send();
   return `jsooTest:`;
 }
 
-export function solverTest(setState:(s:string) => void){
+export function solverTest(setState:(s:string) => void,log:logty){
   solverMinisat([
     "123えび",  "123よい"
     // "123"
@@ -216,5 +219,5 @@ export function solverTest(setState:(s:string) => void){
     // "1234", "5234" // 27[s] to gen, 1.63[s] to solve in C 
     // "1234", "5234", "5634","5674","5678" // 74.555[s] to gen, 4.46222[s] to solve
     // ,"1234", "5234", "5634","5674","5678" // 74.555[s] to gen, 4.46222[s] to solve
-  ],setState);
+  ],setState,log);
 }

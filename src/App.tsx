@@ -15,14 +15,19 @@ function App() {
     setQuery(event.target.value);
   };
   const [queryResult,setQueryResult] = useState("");
+  const [logs,setLogs] = useState("");
+  const log = (...args:any[]) => {
+    console.log(args);
+    setLogs((l) => l + "\n" + String(args).substr(0,100));
+  };
   const execQuery = () => {
     setQueryResult("Solving");
-    solverMinisat(query.split('\n').filter((s) => s.length>0),setQueryResult);
+    solverMinisat(query.split('\n').filter((s) => s.length>0),setQueryResult,log);
   };
 
   useEffect(() => {
     // jsooTest(setS);
-    solverTest(setS2);
+    solverTest(setS2,log);
   },[]);
 
   return (
@@ -38,6 +43,10 @@ function App() {
       {/* <div> { butadicTest() }</div> */}
       {/* <div> { s2 }</div> */}
       <div> 使用ライブラリ/Alt-ergo/MiniSat/Emscripten/豚辞書第14版</div>
+      <textarea
+        value={"log:\n" + logs}
+        onChange={() => {}}
+        style={{width:"100vw",height:"5rem"}}/>
     </div>
     // <div className="App">
     //   <header className="App-header">
