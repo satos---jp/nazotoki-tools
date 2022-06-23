@@ -39,7 +39,10 @@ function App() {
              style={{width:"100vw",height:"50vh",fontSize:"40px"}}/>
       <button onClick={execQuery}
               style={{width:"100vw",height:"5rem",fontSize:"40px"}}> Solve </button>
-      <div style={{fontSize:"40px"}}> {queryResult}</div>
+      <textarea
+        value={queryResult}
+        onChange={() => {}}
+        style={{width:"100vw",height:"25vh",fontSize:"40px"}}/>
       {/* <div> {s} </div> */}
       {/* <div> { butadicTest() }</div> */}
       {/* <div> { s2 }</div> */}

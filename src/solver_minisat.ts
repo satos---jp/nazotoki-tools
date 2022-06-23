@@ -10,7 +10,8 @@ function assert(b:boolean){
 type logty = (..._:any[]) => void
 
 function convert_to_query(query: string[], log:logty)
-  : {cnf:string, relation:Map<number,string>} {
+  : {cnf_head: string,
+     cnf_tail: string,relation:Map<number,string>} {
   // const cs = Array.from({length: hiragana.length}, (_,i) => `c${i}`);
   let max_q = 0;
   const vars : Set<string> = new Set();
@@ -131,13 +132,14 @@ function convert_to_query(query: string[], log:logty)
     });
     res += "0\n";
   });
-  res = `p cnf ${varidx-1} ${tqs.length}\n` + res;
+  const cnf_head = `p cnf ${varidx-1} ${tqs.length}\n`;
+  const cnf_tail = res;
 
   const relation = cmap;
-  return {cnf: res,relation};
+  return {cnf_head, cnf_tail,relation};
 }
 
-function recover(result:string,relation:Map<number,string>, log:logty){
+function recover(result:string,relation:Map<number,string>, log:logty) {
   const s = (()=>{
     const s = result.split(' ');
     log(s);
@@ -149,7 +151,7 @@ function recover(result:string,relation:Map<number,string>, log:logty){
   if(s === undefined){
     return "UNSAT";
   }
-  const res : [string,string][]= [];
+  const res : [string,string,number][]= [];
   log(s);
   relation.forEach((v,k) => {
     //console.log(k,v);
@@ -157,16 +159,38 @@ function recover(result:string,relation:Map<number,string>, log:logty){
       assert(v[0] === "x");
       const [v1,v2] = v.substr(1).split('_');
       const c = hiragana[Number(v2)];
-      res.push([v1,c]);
+      res.push([v1,c,k]);
     }
   });
-  return res;
+  return {
+    str: res.sort()
+            .map(([c1,c2,_]) => `${c1}${c2}`).join('/'),
+    data: res
+  };
+}
+
+function restrict_cnf(
+  data:{cnf_head:string,cnf_tail:string, relation:Map<number,string>},
+  result: {data: [string,string,number][]}
+){
+  const t_head = (() => { // `p cnf ${varidx-1} ${tqs.length}\n`
+    const d = data.cnf_head.split(' ');
+    const dl = d.pop();
+    const n = Number(dl);
+    
+    return d.join(' ') + ` ${n+1}\n`;
+  })();
+  const t_tail = data.cnf_tail + (
+    result.data.map(([_,__,v]) => `${-v}`).join(' ') + " 0\n"
+  );
+
+  return [t_head,t_tail];
 }
 
 export function solverMinisat(
   query: string[],
   callback : (s:string) => void,
-  log:logty){
+  log:logty) : void{
   const n = Date.now();
   log("start conversion");
   const input = convert_to_query(query,log);
@@ -175,22 +199,24 @@ export function solverMinisat(
 
   // const input = 'p cnf 3 2\n1 -3 0\n2 3 -1 0';
   let stt = 0;
-  const send = () => {
+  const send = (input:{cnf_head:string,cnf_tail:string}) => {
+    log('sending to Worker',input);
     stt = Date.now();
-    worker.postMessage(input.cnf);
+    worker.postMessage(input.cnf_head + input.cnf_tail);
   };
 
   let cnt = 0;
+  const models : string[] = [];
   worker.onmessage = function(e){
     log('recieve from worker',e,e.data);
     const s : {status: string, result: string | undefined} = e.data;
-    cnt += 1;
-    if(cnt>5)return;
     if(s.status !== "ok"){
+      cnt += 1;
+      if(cnt>5)return;
       (async () =>{
         const delay = (ms:number) => new Promise(resolve => setTimeout(resolve, ms));
         await delay(1000);
-        send();
+        send(input);
         // stateSet(s.model.join(''));
       })();
       return;
@@ -200,15 +226,32 @@ export function solverMinisat(
 
     if(s.result){
       const ts = recover(s.result,input.relation,log);
-      callback(String(ts));
+      if(ts === "UNSAT"){
+        if(models.length === 0){
+          models.push("UNSAT");
+          callback(models.join('\n'));
+        }else{
+          const f = "FINISH";
+          if(!models.includes(f)){
+            models.push(f);
+            callback(models.join('\n'));
+          }
+        }
+      }else{
+        if(!models.includes(ts.str)){
+          models.push(ts.str);
+          callback(models.join('\n'));
+          [input.cnf_head,input.cnf_tail] = restrict_cnf(input,ts);
+          send(input);
+        }
+      }
     }else{
       console.error("result not found.");
     }
   }
 
   log("posting Msg");
-  send();
-  return `jsooTest:`;
+  send(input);
 }
 
 export function solverTest(setState:(s:string) => void,log:logty){
