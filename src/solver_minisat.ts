@@ -182,7 +182,7 @@ export function solverMinisat(
 
   let cnt = 0;
   worker.onmessage = function(e){
-    log('recieve',e);
+    log('recieve from worker',e,e.data);
     const s : {status: string, result: string | undefined} = e.data;
     cnt += 1;
     if(cnt>5)return;

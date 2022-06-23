@@ -15,10 +15,11 @@ function App() {
     setQuery(event.target.value);
   };
   const [queryResult,setQueryResult] = useState("");
-  const [logs,setLogs] = useState("");
+  const [logs,setLogs] = useState("413");
   const log = (...args:any[]) => {
-    console.log(args);
-    setLogs((l) => l + "\n" + String(args).substr(0,100));
+    console.log(...args);
+    setLogs((l) => l + "\n" +
+      String(args.map((v) => JSON.stringify(v))).substr(0,100));
   };
   const execQuery = () => {
     setQueryResult("Solving");
