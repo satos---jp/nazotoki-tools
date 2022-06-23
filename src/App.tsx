@@ -4,7 +4,8 @@ import './App.css';
 
 import {jsooTest} from './jsoo_wrapper';
 import {butadicTest} from './butadic_wrapper';
-import {solverTest} from './solver';
+// import {solverTest} from './solver_ae';
+import {solverTest} from './solver_minisat';
 
 function App() {
   const [s,setS] = useState("");
