@@ -139,10 +139,14 @@ function recover(result:string,relation:Map<number,string>){
   const s = (()=>{
     const s = result.split(' ');
     console.log(s);
+    if(s[0] === "UNSAT")return undefined;
     assert(s[0] === "SAT");
     s.shift();
     return new Set(s.map((s) => Number(s)).filter((v) => v > 0));
   })();
+  if(s === undefined){
+    return "UNSAT";
+  }
   const res : [string,string][]= [];
   console.log(s);
   relation.forEach((v,k) => {
@@ -157,17 +161,12 @@ function recover(result:string,relation:Map<number,string>){
   return res;
 }
 
-export function solverTest(stateSet : (s:string) => void){
+export function solverMinisat(
+  query: string[],
+  callback : (s:string) => void){
   const n = Date.now();
   console.log("start conversion");
-  const input = convert_to_query([
-    "123えび",  "123よい"
-    // "123"
-    // "1234"
-    // "1234", "5234" // 27[s] to gen, 1.63[s] to solve in C 
-    // "1234", "5234", "5634","5674","5678" // 74.555[s] to gen, 4.46222[s] to solve
-    // ,"1234", "5234", "5634","5674","5678" // 74.555[s] to gen, 4.46222[s] to solve
-  ]);
+  const input = convert_to_query(query);
   console.log(`end conversion. Took ${(Date.now() - n) / 1000}[s]`);
   console.log("start solving");
 
@@ -198,7 +197,7 @@ export function solverTest(stateSet : (s:string) => void){
 
     if(s.result){
       const ts = recover(s.result,input.relation);
-      stateSet(String(ts));
+      callback(String(ts));
     }else{
       console.error("result not found.");
     }
@@ -207,4 +206,15 @@ export function solverTest(stateSet : (s:string) => void){
   console.log("posting Msg");
   send();
   return `jsooTest:`;
+}
+
+export function solverTest(setState:(s:string) => void){
+  solverMinisat([
+    "123えび",  "123よい"
+    // "123"
+    // "1234"
+    // "1234", "5234" // 27[s] to gen, 1.63[s] to solve in C 
+    // "1234", "5234", "5634","5674","5678" // 74.555[s] to gen, 4.46222[s] to solve
+    // ,"1234", "5234", "5634","5674","5678" // 74.555[s] to gen, 4.46222[s] to solve
+  ],setState);
 }
