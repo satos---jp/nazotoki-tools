@@ -6,6 +6,7 @@ import {jsooTest} from './jsoo_wrapper';
 import {butadicTest} from './butadic_wrapper';
 // import {solverTest} from './solver_ae';
 import {solverTest,solverMinisat} from './solver_minisat';
+import {solverStr} from './solver_str';
 
 function App() {
   const [s,setS] = useState("");
@@ -23,12 +24,14 @@ function App() {
   };
   const execQuery = () => {
     setQueryResult("Solving");
-    solverMinisat(query.split('\n').filter((s) => s.length>0),setQueryResult,log);
+    // solverMinisat(query.split('\n').filter((s) => s.length>0),setQueryResult,log);
+    solverStr(query.split('\n').filter((s) => s.length>0),setQueryResult,log);
   };
 
   useEffect(() => {
     // jsooTest(setS);
-    solverTest(setS2,log);
+    // solverTest(setS2,log);
+    // solverStr(setS2,log);
   },[]);
 
   return (
