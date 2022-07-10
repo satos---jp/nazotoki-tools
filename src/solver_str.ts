@@ -10,12 +10,21 @@ function assert(b:boolean){
 type logty = (..._:any[]) => void
 
 const data_dict = _.groupBy(data,(v) => v.length);
-console.log(
-  Array.from({length:7}).map((_,i) => [i+2,data_dict[i+2].length]));
+// console.log(
+//   Array.from({length:7}).map((_,i) => [i+2,data_dict[i+2].length]));
+// [
+//   [ 2, 2032 ],
+//   [ 3, 15674 ],
+//   [ 4, 42814 ],
+//   [ 5, 41205 ],
+//   [ 6, 40045 ],
+//   [ 7, 34639 ],
+//   [ 8, 24683 ]
+// ]
 
 type char = number;
 
-function solve_query(query: string[], log:logty) {
+export function solve_query(query: string[], log:logty) {
   let max_q = 0;
   const queries : (string|char)[][] = query.map((s,qidx) => {
     const ts = s.split('').map((c) => {
@@ -36,25 +45,6 @@ function solve_query(query: string[], log:logty) {
     return ts;
   });
 
-  function gen_constraint(q: (number|string)[]){
-    const res : [number,number][] = [];
-    q.forEach((v,i) => {
-      if(typeof v === "number"){
-        res.push([i,v]);
-      }
-    });
-    return res;
-  }
-
-  function isValid(qc:[number,number][],v:number[]){
-    let ok = true;
-    qc.forEach(([i,c]) => {
-      if(v[i] !== c)ok = false;
-      if(!ok)return;
-    });
-    return ok;
-  }
-
   function isQuestion(v:number){
     return v >=10;
   }
@@ -69,11 +59,34 @@ function solve_query(query: string[], log:logty) {
   const varsQn : number[][] = [];
 
   queries.forEach((q,qn) => {
+    const qc : [number,number][] = [];
+    q.forEach((v,i) => {
+      if(typeof v === "number"){
+        qc.push([i,v]);
+      }
+    });
+
     const ds = data_dict[q.length];
     const nconstr : number[] = [];
-    const qc = gen_constraint(q);
     ds.forEach((s,i) => {
-      if(isValid(qc,s)){
+      let ok = true;
+      for(let i = 0; i < q.length; i++){
+        const v = q[i];
+        if(typeof v === "number"){
+          if(s[i] !== v)ok = false;
+        } else {
+          assert(typeof v === "string");
+          for(let j = 0; j < i; j++){
+            if(v === q[j]){
+              if(s[i] !== s[j]){
+                ok = false;
+              }
+            }
+          }
+        }
+        if(!ok)break;
+      }
+      if(ok){
         nconstr.push(i);
         // log(qc,s,i,nconstr);
       }
@@ -87,7 +100,7 @@ function solve_query(query: string[], log:logty) {
       if(typeof c === "string"){
         const tc = Number(c.substr(1));
         assert(tc !== Number("Nan"));
-        nvpos.set(tc,ci);
+        nvpos.set(tc,ci); // このとき、1単語に複数該当箇所のある場合は最後の箇所になる
         vars.add(tc);
         nvars.add(tc);
       }
@@ -223,6 +236,7 @@ function solve_query(query: string[], log:logty) {
         const tans = answer.concat([[nvidx,hiragana[c]]]);
         if(freeVars.length === 0){
           // log("used",used,tans);
+          tans.sort(([i,_],[j,__]) => i-j);
           answers.push(tans);
         }else{
           search(
